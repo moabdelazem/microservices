@@ -17,6 +17,11 @@ type DB struct {
 
 // Connect establishes connection to PostgreSQL database
 func Connect() (*DB, error) {
+	sslMode := os.Getenv("DB_SSLMODE")
+	if sslMode == "" {
+		sslMode = "disable" // Default to disable for development
+	}
+
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		os.Getenv("DB_HOST"),
@@ -24,7 +29,7 @@ func Connect() (*DB, error) {
 		os.Getenv("DB_USER"),
 		os.Getenv("DB_PASSWORD"),
 		os.Getenv("DB_NAME"),
-		os.Getenv("DB_SSLMODE"),
+		sslMode,
 	)
 
 	db, err := sqlx.Connect("postgres", dsn)

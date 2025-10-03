@@ -26,3 +26,6 @@ logs/
 *.swp
 *.swo
 *~
+
+# bin dir
+bin/

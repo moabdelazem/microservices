@@ -19,12 +19,39 @@ type Consumer struct {
 	db      *database.DB
 }
 
-// NewConsumer creates a new RabbitMQ consumer
+// NewConsumer creates a new RabbitMQ consumer with retry logic
 func NewConsumer(db *database.DB) (*Consumer, error) {
-	conn, err := amqp.Dial(os.Getenv("RABBITMQ_URL"))
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to RabbitMQ: %w", err)
+	var conn *amqp.Connection
+	var err error
+
+	// Retry connection up to 10 times with exponential backoff
+	// Get maxRetries from environment variable or use default
+	const defaultMaxRetries = 10
+	maxRetries := defaultMaxRetries
+	if val := os.Getenv("RABBITMQ_MAX_RETRIES"); val != "" {
+		if parsed, err := fmt.Sscanf(val, "%d", &maxRetries); err != nil || parsed != 1 || maxRetries < 1 {
+			maxRetries = defaultMaxRetries
+		}
 	}
+
+	for i := 0; i < maxRetries; i++ {
+		conn, err = amqp.Dial(os.Getenv("RABBITMQ_URL"))
+		if err == nil {
+			break
+		}
+
+		if i < maxRetries-1 {
+			waitTime := time.Duration(i+1) * time.Second
+			log.Printf("⚠️  Failed to connect to RabbitMQ (attempt %d/%d), retrying in %v...", i+1, maxRetries, waitTime)
+			time.Sleep(waitTime)
+		}
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to RabbitMQ after %d attempts: %w", maxRetries, err)
+	}
+
+	log.Println("✅ Connected to RabbitMQ")
 
 	channel, err := conn.Channel()
 	if err != nil {
@@ -32,8 +59,13 @@ func NewConsumer(db *database.DB) (*Consumer, error) {
 		return nil, fmt.Errorf("failed to open channel: %w", err)
 	}
 
-	// Declare exchange
+	// Get exchange name with default
 	exchange := os.Getenv("RABBITMQ_EXCHANGE")
+	if exchange == "" {
+		exchange = "auth_events" // Default exchange name
+	}
+
+	// Declare exchange
 	err = channel.ExchangeDeclare(
 		exchange, // name
 		"topic",  // type
@@ -49,8 +81,15 @@ func NewConsumer(db *database.DB) (*Consumer, error) {
 		return nil, fmt.Errorf("failed to declare exchange: %w", err)
 	}
 
-	// Declare queue
+	log.Printf("✅ Declared exchange: %s", exchange)
+
+	// Get queue name with default
 	queueName := os.Getenv("RABBITMQ_QUEUE")
+	if queueName == "" {
+		queueName = "tasks-service-queue" // Default queue name
+	}
+
+	// Declare queue
 	queue, err := channel.QueueDeclare(
 		queueName, // name
 		true,      // durable
@@ -65,7 +104,9 @@ func NewConsumer(db *database.DB) (*Consumer, error) {
 		return nil, fmt.Errorf("failed to declare queue: %w", err)
 	}
 
-	// Bind queue to exchange
+	log.Printf("✅ Declared queue: %s", queue.Name)
+
+	// Bind queue to exchange for user.created events
 	err = channel.QueueBind(
 		queue.Name,     // queue name
 		"user.created", // routing key
@@ -78,6 +119,8 @@ func NewConsumer(db *database.DB) (*Consumer, error) {
 		conn.Close()
 		return nil, fmt.Errorf("failed to bind queue: %w", err)
 	}
+
+	log.Printf("✅ Bound queue to exchange with routing key: user.created")
 
 	// Also bind to user.updated
 	err = channel.QueueBind(
