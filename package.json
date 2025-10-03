@@ -1,0 +1,13 @@
+{
+  "name": "microservices",
+  "version": "1.0.0",
+  "description": "This repository contains a collection of microservices designed to demonstrate various functionalities and integrations. Each microservice is self-contained and can be deployed independently.",
+  "main": "index.js",
+  "scripts": {
+    "start:auth": "cd auth && npm start",
+    "start": "npm run start:auth"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

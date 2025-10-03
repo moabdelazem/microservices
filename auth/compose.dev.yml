@@ -1,0 +1,28 @@
+services:
+  auth-db:
+    image: postgres:18-bookworm
+    container_name: auth-db-dev
+    environment:
+      POSTGRES_USER: mo
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: auth_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - auth_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mo -d auth_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  auth_db_data:
+
+networks:
+  auth_network:
+  mq_network:
+    external: true

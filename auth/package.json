@@ -1,0 +1,28 @@
+{
+  "name": "auth",
+  "version": "1.0.0",
+  "description": "Authentication microservice with RabbitMQ and PostgreSQL",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "watch": "nodemon src/index.js",
+    "start": "node src/index.js",
+    "compose-dev": "docker compose -f compose.dev.yml up -d",
+    "compose-down": "docker compose -f compose.dev.yml down"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "amqplib": "^0.10.9",
+    "bcrypt": "^5.1.1",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-validator": "^7.2.1",
+    "jsonwebtoken": "^9.0.2",
+    "nodemon": "^3.1.10",
+    "pg": "^8.16.3",
+    "winston": "^3.18.3",
+    "winston-daily-rotate-file": "^5.0.0"
+  }
+}
