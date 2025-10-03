@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
+services:
+  tasks_db:
+    image: postgres:18-alpine
+    container_name: tasks_postgres
+    environment:
+      POSTGRES_USER: tasks_user
+      POSTGRES_PASSWORD: tasks_pass
+      POSTGRES_DB: tasks_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - tasks_db_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - mq_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tasks_user -d tasks_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  tasks_db_data:
+
+networks:
+  mq_network:
+    external: true
