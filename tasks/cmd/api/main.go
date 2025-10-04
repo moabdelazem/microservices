@@ -53,6 +53,7 @@ func main() {
 	router := gin.New()
 	router.Use(gin.Recovery())
 	router.Use(middleware.Logger())
+	router.Use(middleware.CORS())
 
 	// Initialize handlers
 	taskHandler := handlers.NewTaskHandler(db)
