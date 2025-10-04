@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { tasksAPI, type Task, type TaskStats } from '@/lib/api';
+import { tasksAPI, type Task } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LogOut, Plus, ListTodo, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import { LogOut, Plus } from 'lucide-react';
 import TaskList from '@/components/TaskList';
 import CreateTaskDialog from '@/components/CreateTaskDialog';
 import { useNavigate } from 'react-router-dom';
@@ -12,14 +12,12 @@ export default function DashboardPage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [stats, setStats] = useState<TaskStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   useEffect(() => {
     loadTasks();
-    loadStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
 
@@ -36,15 +34,6 @@ export default function DashboardPage() {
     }
   };
 
-  const loadStats = async () => {
-    try {
-      const data = await tasksAPI.getStats();
-      setStats(data);
-    } catch (error) {
-      console.error('Failed to load stats:', error);
-    }
-  };
-
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -52,17 +41,14 @@ export default function DashboardPage() {
 
   const handleTaskCreated = () => {
     loadTasks();
-    loadStats();
   };
 
   const handleTaskUpdated = () => {
     loadTasks();
-    loadStats();
   };
 
   const handleTaskDeleted = () => {
     loadTasks();
-    loadStats();
   };
 
   return (
@@ -85,49 +71,6 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Tasks</CardTitle>
-              <ListTodo className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats?.total || 0}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Pending</CardTitle>
-              <AlertCircle className="h-4 w-4 text-yellow-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats?.pending || 0}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-              <Clock className="h-4 w-4 text-blue-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats?.in_progress || 0}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Completed</CardTitle>
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats?.completed || 0}</div>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Tasks Section */}
         <Card>
           <CardHeader>
