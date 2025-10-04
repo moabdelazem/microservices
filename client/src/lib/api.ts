@@ -1,7 +1,7 @@
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost';
-const AUTH_SERVICE_URL = `${API_BASE_URL}:3001/api/auth`;
-const TASKS_SERVICE_URL = `${API_BASE_URL}:3002/api/tasks`;
+// Supports both Docker Compose (localhost:port) and Kubernetes (service-name) deployments
+const AUTH_SERVICE_URL = import.meta.env.VITE_AUTH_SERVICE_URL || 'http://localhost:3001/api/auth';
+const TASKS_SERVICE_URL = import.meta.env.VITE_TASKS_SERVICE_URL || 'http://localhost:3002/api/tasks';
 
 export interface User {
   id: string;

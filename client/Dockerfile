@@ -1,6 +1,14 @@
 # Stage 1: Build the application
 FROM node:22-alpine AS builder
 
+# Build arguments for API endpoints (can be overridden at build time)
+ARG VITE_AUTH_SERVICE_URL=http://localhost:3001/api/auth
+ARG VITE_TASKS_SERVICE_URL=http://localhost:3002/api/tasks
+
+# Set as environment variables for Vite build
+ENV VITE_AUTH_SERVICE_URL=$VITE_AUTH_SERVICE_URL
+ENV VITE_TASKS_SERVICE_URL=$VITE_TASKS_SERVICE_URL
+
 # Set working directory
 WORKDIR /app
 

@@ -177,10 +177,11 @@ services:
     build:
       context: ./client
       dockerfile: Dockerfile
+      args:
+        VITE_AUTH_SERVICE_URL: http://localhost:3001/api/auth
+        VITE_TASKS_SERVICE_URL: http://localhost:3002/api/tasks
     container_name: client
     restart: unless-stopped
-    environment:
-      VITE_API_URL: http://localhost
     ports:
       - "3000:3000"
     networks:
