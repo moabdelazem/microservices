@@ -101,6 +101,7 @@ services:
       RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
       JWT_SECRET: 9e4e1cd562230d9fab1e744580e0ffba
       JWT_EXPIRES_IN: 24h
+      CLIENT_URL: http://localhost:3000
     ports:
       - "3001:3001"
     networks:
@@ -146,6 +147,7 @@ services:
       RABBITMQ_EXCHANGE: auth_events
       RABBITMQ_QUEUE: tasks-service-queue
       JWT_SECRET: 9e4e1cd562230d9fab1e744580e0ffba
+      CLIENT_URL: http://localhost:3000
     ports:
       - "3002:3002"
     networks:

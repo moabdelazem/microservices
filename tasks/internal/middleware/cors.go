@@ -11,7 +11,7 @@ func CORS() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clientURL := os.Getenv("CLIENT_URL")
 		if clientURL == "" {
-			clientURL = "http://localhost:5173"
+			clientURL = "http://localhost:3000"
 		}
 
 		c.Writer.Header().Set("Access-Control-Allow-Origin", clientURL)
