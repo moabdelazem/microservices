@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: auth-statefulset
+  labels:
+    app: auth-db
+spec:
+  selector:
+    matchLabels:
+      app: auth-db
+  serviceName: auth-db-service
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: auth-db
+    spec:
+      containers:
+      - name: db-container
+        image: postgres:18-alpine
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: auth-db-config
+              key: POSTGRES_DB
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: auth-db-secret
+              key: username
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: auth-db-secret
+              key: password
+        - name: PGDATA
+          value: /var/lib/postgresql/data
+        volumeMounts:
+        - name: db-data
+          mountPath: /var/lib/postgresql
+        - name: db-init
+          mountPath: /docker-entrypoint-initdb.d
+      volumes:
+      - name: db-init
+        configMap:
+          name: auth-db-config
+          items:
+          - key: init.sql
+            path: init.sql
+  volumeClaimTemplates:
+  - metadata:
+      name: db-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 512Mi

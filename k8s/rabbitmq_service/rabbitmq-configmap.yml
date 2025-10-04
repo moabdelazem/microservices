@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rabbitmq-config
+data:
+  # RabbitMQ Configuration
+  RABBITMQ_DEFAULT_VHOST: /
+  
+  # Event Exchange Configuration (used by auth and tasks services)
+  RABBITMQ_EXCHANGE: auth_events
+  RABBITMQ_QUEUE: tasks-service-queue
+  
+  # Connection URL template (services will use this pattern)
+  RABBITMQ_URL_TEMPLATE: amqp://admin:admin@rabbitmq-service:5672

@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: tasks-db-statefulset
+  labels:
+    app: tasks-db
+spec:
+  selector:
+    matchLabels:
+      app: tasks-db
+  serviceName: tasks-db-service
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: tasks-db
+    spec:
+      containers:
+      - name: db-container
+        image: postgres:16-alpine
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: tasks-db-config
+              key: POSTGRES_DB
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: tasks-db-secret
+              key: username
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: tasks-db-secret
+              key: password
+        - name: PGDATA
+          value: /var/lib/postgresql/data
+        volumeMounts:
+        - name: db-data
+          mountPath: /var/lib/postgresql
+        - name: db-init
+          mountPath: /docker-entrypoint-initdb.d
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - tasks_user
+            - -d
+            - tasks_db
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - tasks_user
+            - -d
+            - tasks_db
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+      volumes:
+      - name: db-init
+        configMap:
+          name: tasks-db-config
+          items:
+          - key: init.sql
+            path: init.sql
+  volumeClaimTemplates:
+  - metadata:
+      name: db-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
